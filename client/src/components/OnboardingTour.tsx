@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ChevronLeft, X, CheckCircle, Zap } from 'lucide-react';
+import WelcomeCouponModal from './WelcomeCouponModal';
+import { useAuth } from '@/_core/hooks/useAuth';
 
 interface TourStep {
   id: string;
@@ -120,9 +122,19 @@ interface OnboardingTourProps {
   onComplete: () => void;
 }
 
+interface WelcomeCoupon {
+  code: string;
+  discount: number;
+  minOrderAmount: number;
+  expiresAt: Date;
+}
+
 export default function OnboardingTour({ isOpen, onClose, onComplete }: OnboardingTourProps) {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [welcomeCoupon, setWelcomeCoupon] = useState<WelcomeCoupon | null>(null);
 
   const step = tourSteps[currentStep];
   const progress = ((currentStep + 1) / tourSteps.length) * 100;
@@ -132,6 +144,23 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
       setCompletedSteps([...completedSteps, step.id]);
       setCurrentStep(currentStep + 1);
     } else {
+      // Generate welcome coupon
+      const couponCode = `WELCOME${Date.now()}${Math.random()
+        .toString(36)
+        .substr(2, 9)
+        .toUpperCase()}`;
+      
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      
+      setWelcomeCoupon({
+        code: couponCode,
+        discount: 20,
+        minOrderAmount: 50,
+        expiresAt,
+      });
+      
+      setShowCouponModal(true);
+      onClose();
       onComplete();
     }
   };
@@ -150,10 +179,31 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
     setCurrentStep(index);
   };
 
+  const handleCopyCoupon = () => {
+    if (welcomeCoupon) {
+      navigator.clipboard.writeText(welcomeCoupon.code);
+    }
+  };
+
+  const handleCloseCouponModal = () => {
+    setShowCouponModal(false);
+  };
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
+    <>
+      <WelcomeCouponModal
+        isOpen={showCouponModal}
+        couponCode={welcomeCoupon?.code || ''}
+        discount={welcomeCoupon?.discount || 20}
+        minOrderAmount={welcomeCoupon?.minOrderAmount || 50}
+        expiresAt={welcomeCoupon?.expiresAt || new Date()}
+        onClose={handleCloseCouponModal}
+        onCopyCode={handleCopyCoupon}
+      />
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -292,8 +342,9 @@ export default function OnboardingTour({ isOpen, onClose, onComplete }: Onboardi
               </button>
             </div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
