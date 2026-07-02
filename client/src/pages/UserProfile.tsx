@@ -15,6 +15,7 @@ import {
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import CashbackBalance from '@/components/CashbackBalance';
 
 interface UserCoupon {
   id: string;
@@ -163,6 +164,31 @@ export default function UserProfile() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
+        {activeTab === 'overview' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {/* Cashback Balance Section */}
+            <CashbackBalance
+              data={{
+                totalEarned: 450,
+                availableBalance: 150,
+                pendingBalance: 75,
+                usedTotal: 225,
+                lastUpdated: new Date(),
+              }}
+              onUseInCheckout={() => {
+                window.location.href = '/cart';
+              }}
+              onWithdraw={() => {
+                alert('سيتم تحويل الرصيد إلى حسابك البنكي');
+              }}
+            />
+          </motion.div>
+        )}
+
         {activeTab === 'overview' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
