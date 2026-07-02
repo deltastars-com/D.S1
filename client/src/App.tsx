@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import OnboardingPage from "./pages/OnboardingPage";
 import UserProfile from "./pages/UserProfile";
 import Cart from "./pages/Cart";
+import ProductDetails from "./pages/ProductDetails";
 import OnboardingTour from "./components/OnboardingTour";
 import { useOnboarding } from "./hooks/useOnboarding";
 
@@ -20,6 +21,7 @@ function Router() {
       <Route path={"/onboarding"} component={OnboardingPage} />
       <Route path={"/profile"} component={UserProfile} />
       <Route path={"/cart"} component={Cart} />
+      <Route path={"/product/:id"} component={ProductDetails} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
