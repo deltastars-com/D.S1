@@ -4,8 +4,10 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import Header from "./components/Header";
 import Home from "./pages/Home";
 import OnboardingPage from "./pages/OnboardingPage";
+import UserProfile from "./pages/UserProfile";
 import OnboardingTour from "./components/OnboardingTour";
 import { useOnboarding } from "./hooks/useOnboarding";
 
@@ -15,6 +17,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/onboarding"} component={OnboardingPage} />
+      <Route path={"/profile"} component={UserProfile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -27,6 +30,7 @@ function AppWithTour() {
 
   return (
     <>
+      <Header />
       <Router />
       <OnboardingTour isOpen={isTourOpen} onClose={closeTour} onComplete={completeTour} />
     </>
