@@ -5,16 +5,31 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import OnboardingPage from "./pages/OnboardingPage";
+import OnboardingTour from "./components/OnboardingTour";
+import { useOnboarding } from "./hooks/useOnboarding";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/onboarding"} component={OnboardingPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
+  );
+}
+
+function AppWithTour() {
+  const { isTourOpen, completeTour, closeTour } = useOnboarding();
+
+  return (
+    <>
+      <Router />
+      <OnboardingTour isOpen={isTourOpen} onClose={closeTour} onComplete={completeTour} />
+    </>
   );
 }
 
@@ -32,7 +47,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <AppWithTour />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
