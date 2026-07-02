@@ -1,0 +1,26 @@
+{
+  "appId": "com.deltastars.store",
+  "appName": "Delta Stars - متجر نجوم دلتا",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    },
+    "Geolocation": {
+      "permissions": ["location"]
+    },
+    "Camera": {
+      "permissions": ["camera", "photos"]
+    },
+    "Contacts": {
+      "permissions": ["contacts"]
+    },
+    "Share": {
+      "permissions": ["share"]
+    }
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
