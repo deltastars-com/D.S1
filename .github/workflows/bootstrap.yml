@@ -1,0 +1,84 @@
+name: 📦 DeltaStars Bootstrap
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "project-source.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip rsync
+
+      - name: Verify ZIP
+        run: |
+          if [ ! -f project-source.zip ]; then
+            echo "❌ project-source.zip not found."
+            exit 1
+          fi
+
+      - name: Backup existing files
+        run: |
+          mkdir -p .backup
+          rsync -a \
+            --exclude=.git \
+            --exclude=.github \
+            ./ .backup/
+
+      - name: Extract project
+        run: |
+          mkdir extracted
+          unzip -o project-source.zip -d extracted
+
+      - name: Detect project root
+        id: root
+        run: |
+          ROOT=$(find extracted -mindepth 1 -maxdepth 2 -type f \( -name package.json -o -name netlify.toml -o -name vite.config.* \) | head -n1 | xargs dirname)
+
+          if [ -z "$ROOT" ]; then
+            ROOT="extracted"
+          fi
+
+          echo "ROOT=$ROOT" >> $GITHUB_ENV
+
+      - name: Copy files
+        run: |
+          rsync -a "$ROOT"/ ./ \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=project-source.zip \
+            --delete-after
+
+      - name: Remove extraction folder
+        run: |
+          rm -rf extracted
+          rm -f project-source.zip
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+
+          git commit -m "🚀 DeltaStars Bootstrap Update"
+
+      - name: Push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
