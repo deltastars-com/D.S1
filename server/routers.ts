@@ -273,7 +273,7 @@ export const appRouter = router({
       }),
   }),
 
-  // ============ CHAT ROUTER ============
+  // ============ CHAT ROUTER (ADI AI ASSISTANT) ============
   chat: router({
     sendMessage: protectedProcedure
       .input(
@@ -284,8 +284,47 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         await db.saveChatMessage(ctx.user.id, "user", input.content, input.language);
-        // TODO: Integrate with Google Gemini AI
-        const aiResponse = "شكراً لسؤالك! كيف يمكنني مساعدتك؟";
+        
+        let aiResponse = "";
+        try {
+          const { invokeLLM } = await import("./_core/llm");
+          const productsList = await db.getProducts({});
+          const categoriesList = await db.getCategories();
+          
+          const systemPrompt = `أنت "عدي" (Adi)، المساعد الذكي الرسمي لمتجر "نجوم دلتا" (Delta Stars) السعودي المتخصص في المنتجات الطازجة، الخضروات، الفواكه، والعقود التجارية وكبار العملاء.
+أنت مساعد احترافي، ودود، وتجيب بدقة مستعيناً حصرياً بقاعدة بيانات المنتجات والفروع الخاصة بالمتجر.
+الفروع الستة: فرع جدة الرئيسي، فرع الرياض، فرع مكة المكرمة، فرع المدينة المنورة، فرع الدمام، فرع أبها.
+الأقسام المتاحة: ${categoriesList.map(c => c.nameAr).join(", ")}.
+أمثلة من المنتجات: ${productsList.slice(0, 10).map(p => `${p.nameAr} (${p.price} ريال)`).join(", ")}.
+أجب العملاء بلغة عربية فصحى مبسطة أو باللهجة السعودية المهنية، وقدم إرشادات دقيقة حول الطلبات، الأسعار، التوصيل، الكاش باك، وعقود الشركات.`;
+
+          const chatHistory = await db.getChatHistory(ctx.user.id);
+          const recentMessages = chatHistory.slice(-6).map(m => ({
+            role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+            content: m.content,
+          }));
+
+          const res = await invokeLLM({
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...recentMessages,
+              { role: "user", content: input.content },
+            ],
+          });
+
+          const rawContent = res.choices[0]?.message?.content;
+          aiResponse = typeof rawContent === "string" 
+            ? rawContent 
+            : Array.isArray(rawContent) 
+              ? rawContent.map((part: any) => part.type === "text" ? part.text : "").join("") 
+              : "أهلاً بك في نجوم دلتا! كيف يمكنني مساعدتك في طلباتك اليوم؟";
+        } catch (err: any) {
+          console.error("Adi AI Error:", err);
+          aiResponse = input.language === "ar"
+            ? "عذراً، واجهت عدي مشكلة مؤقتة في الاتصال بنظام الذكاء الاصطناعي. يمكنك تصفح المنتجات مباشرة أو التواصل مع خدمة العملاء."
+            : "Sorry, Adi encountered a temporary connection issue. Please browse products or contact support.";
+        }
+
         await db.saveChatMessage(ctx.user.id, "assistant", aiResponse, input.language);
         return { response: aiResponse };
       }),
