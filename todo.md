@@ -422,3 +422,5 @@
 ✨ رسوم متحركة احترافية
 ✨ دعم الوضع الليلي
 ✨ تصميم متجاوب
+
+- [x] إصلاح فشل النشر السحابي ERR_PNPM_IGNORED_BUILDS عبر trusted onlyBuiltDependencies وإعادة التحقق من CI

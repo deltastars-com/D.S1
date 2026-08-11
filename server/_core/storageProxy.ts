@@ -2,8 +2,10 @@ import type { Express } from "express";
 import { ENV } from "./env";
 
 export function registerStorageProxy(app: Express) {
-  app.get("/manus-storage/*", async (req, res) => {
-    const key = (req.params as Record<string, string>)[0];
+  // Express 5 requires a named wildcard parameter; preserve nested storage keys.
+  app.get("/manus-storage/*splat", async (req, res) => {
+    const raw = (req.params as { splat?: string | string[] }).splat;
+    const key = Array.isArray(raw) ? raw.join("/") : raw;
     if (!key) {
       res.status(400).send("Missing storage key");
       return;
