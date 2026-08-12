@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DeltaStarsLogo } from './DeltaStarsLogo';
 
@@ -55,8 +55,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, logoPath
   useEffect(() => {
     const t = setTimeout(() => {
       setIsVisible(false);
-      onComplete();
-    }, 1800);
+      try {
+        onComplete();
+      } catch (e) {
+        console.error('Splash onComplete error:', e);
+      }
+    }, 1200);
     return () => clearTimeout(t);
   }, [onComplete]);
 

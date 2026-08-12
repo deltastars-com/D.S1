@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /showroom
+Allow: /products
+Allow: /contact
+Allow: /track
+
+Disallow: /admin_dashboard
+Disallow: /dev_console
+Disallow: /api/
+
+Sitemap: https://deltastars.store/sitemap.xml
