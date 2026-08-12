@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="100%" stop-color="#052e16"/>
+    </radialGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+  </defs>
+  <circle cx="250" cy="250" r="235" fill="url(#bgGrad)" stroke="url(#goldGrad)" stroke-width="12"/>
+  <circle cx="250" cy="250" r="215" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="8 6" opacity="0.6"/>
+  <path d="M250 80 L290 150 L370 160 L310 220 L325 300 L250 260 L175 300 L190 220 L130 160 L210 150 Z" fill="url(#goldGrad)" opacity="0.95"/>
+  <path d="M250 110 C210 170 170 210 170 260 C170 304 206 340 250 340 C294 340 330 304 330 260 C330 210 290 170 250 110 Z" fill="#16a34a" stroke="#fde047" stroke-width="6"/>
+  <path d="M220 250 C235 240 265 240 280 250 C265 280 235 280 220 250 Z" fill="#fde047"/>
+  <text x="250" y="395" font-family="Tajawal, Arial, sans-serif" font-weight="900" font-size="42" fill="#fde047" text-anchor="middle" letter-spacing="3">DELTA STARS</text>
+  <text x="250" y="430" font-family="Tajawal, Arial, sans-serif" font-weight="700" font-size="22" fill="#ffffff" text-anchor="middle" opacity="0.9">متجر نجوم دلتا</text>
+</svg>

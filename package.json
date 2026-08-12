@@ -31,7 +31,6 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
-    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "@capacitor/geolocation": "^8.1.0",
@@ -140,20 +139,6 @@
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
     "pngjs": "^7.0.0",
-    "sharp": "^0.35.3",
     "vite-plugin-manus-runtime": "^0.0.59"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@firebase/util",
-      "@google/genai",
-      "@prisma/client",
-      "@prisma/engines",
-      "core-js",
-      "esbuild",
-      "prisma",
-      "protobufjs",
-      "sharp"
-    ]
   }
 }
