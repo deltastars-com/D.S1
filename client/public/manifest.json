@@ -1,0 +1,16 @@
+{
+  "name": "متجر نجوم دلتا السيادي",
+  "short_name": "نجوم دلتا",
+  "description": "شريكك المثالي للخضروات والفواكه والتمور عالية الجودة في المملكة العربية السعودية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#052e16",
+  "theme_color": "#0F5132",
+  "icons": [
+    {
+      "src": "/official_logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
