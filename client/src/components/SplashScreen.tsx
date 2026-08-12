@@ -47,45 +47,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, logoPath
 
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
-    onCompleteRef.current = onComplete;
-  }, [onComplete]);
-
-  const handleDismiss = () => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onCompleteRef.current();
-    }, 150);
-  };
-
-  useEffect(() => {
-    // Rotation every 2.5s if visible
-    const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
-    }, 2500);
-
-    // Step progress
-    const step1 = setTimeout(() => setLoadingStep(1), 400);
-    const step2 = setTimeout(() => setLoadingStep(2), 900);
-    const step3 = setTimeout(() => setLoadingStep(3), 1400);
-
-    // Boot timing (1.8s total) for ultra-fast, responsive load
-    const t1 = setTimeout(() => {
+    const t = setTimeout(() => {
       setIsVisible(false);
-    }, 1800);
-
-    const t2 = setTimeout(() => {
-      onCompleteRef.current();
-    }, 2000);
-
-    return () => {
-      clearInterval(slideInterval);
-      clearTimeout(step1);
-      clearTimeout(step2);
-      clearTimeout(step3);
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
+      onComplete();
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [onComplete]);
 
   const isAr = typeof localStorage !== 'undefined' ? localStorage.getItem('ds_lang') !== 'en' : true;
 
