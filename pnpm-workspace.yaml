@@ -11,7 +11,6 @@ onlyBuiltDependencies:
   - esbuild
   - prisma
   - protobufjs
-  - sharp
 
 # pnpm 11 compatibility
 allowBuilds:
@@ -23,4 +22,3 @@ allowBuilds:
   esbuild: true
   prisma: true
   protobufjs: true
-  sharp: true
