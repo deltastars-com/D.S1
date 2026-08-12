@@ -2112,7 +2112,7 @@ export const DeveloperDashboard: React.FC<{ onBack?: () => void }> = ({ onBack }
                                 <p className="text-[10px] text-slate-400 font-bold uppercase">{cat.label_en}</p>
                             </div>
                             <button 
-                                onClick={() => deleteCategory(cat.id)}
+                                onClick={() => { if (cat.id) void deleteCategory(cat.id); }}
                                 className="p-3 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
                             >
                                 <TrashIcon className="w-5 h-5" />
@@ -2145,7 +2145,7 @@ export const DeveloperDashboard: React.FC<{ onBack?: () => void }> = ({ onBack }
                                 <p className="text-[10px] text-slate-400 font-bold uppercase">{unit.label_en}</p>
                             </div>
                             <button 
-                                onClick={() => deleteUnit(unit.id)}
+                                onClick={() => { if (unit.id) void deleteUnit(unit.id); }}
                                 className="p-3 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
                             >
                                 <TrashIcon className="w-5 h-5" />

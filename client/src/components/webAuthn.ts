@@ -18,7 +18,7 @@ const getKeys = (): Record<string, string> => {
 };
 
 const toBase64Url = (bytes: Uint8Array): string =>
-  btoa(String.fromCharCode(...bytes))
+  btoa(String.fromCharCode(...Array.from(bytes)))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/g, '');

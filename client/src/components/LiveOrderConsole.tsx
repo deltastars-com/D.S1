@@ -1001,7 +1001,7 @@ export const LiveOrderConsole: React.FC<LiveOrderConsoleProps> = ({ branchId }) 
                               <PhoneIcon className="w-3.5 h-3.5 text-primary shrink-0" />
                               <span className="font-mono">{order.customerPhone}</span>
                               <a 
-                                href={`https://wa.me/${order.customerPhone.replace(/\s+/g, '')}`} 
+                                href={`https://wa.me/${(order.customerPhone ?? '').replace(/\s+/g, '')}`}
                                 target="_blank" 
                                 rel="noreferrer"
                                 className="text-[10px] text-emerald-500 font-bold hover:underline"

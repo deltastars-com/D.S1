@@ -111,9 +111,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Trigger a beautiful browser desktop alert
       if (Notification.permission === 'granted') {
-        new Notification(notif.title, { body: notif.body, icon: '/icon-192.png' });
+        new Notification(notif.title, { body: notif.body, icon: '/official_logo.png' });
       }
     }).catch(() => {});
+
+    return () => cleanupEvents();
   }, [addToast]);
 
   // 2. Save / Bind FCM token to the authenticated user in Firestore
@@ -188,7 +190,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (Notification.permission === 'granted') {
           new Notification(freshNotif.title, {
             body: freshNotif.body,
-            icon: '/icon-192.png'
+            icon: '/official_logo.png'
           });
         }
       }
@@ -196,7 +198,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       console.warn('[Real-Time Notifications Sync offline/bypass]:', error.message);
     });
 
-    return () => { unsubscribe(); cleanupEvents(); };
+    return () => unsubscribe();
   }, [user, language]);
 
   // 4. Real-Time Order Status Tracker Listener for active customers

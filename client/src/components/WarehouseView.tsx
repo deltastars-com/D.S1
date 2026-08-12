@@ -57,7 +57,8 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
     const handleStockAdjustment = (productId: number, amount: number, type: 'IN' | 'OUT') => {
         const product = products.find(p => p.id === productId);
         if (!product) return;
-        const newQty = type === 'IN' ? product.stock_quantity + amount : product.stock_quantity - amount;
+        const currentQty = product.stock_quantity ?? 0;
+        const newQty = type === 'IN' ? currentQty + amount : currentQty - amount;
         onUpdateStock(productId, newQty);
         
         const movement: StockMovement = {
@@ -142,8 +143,8 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
                                                 </div>
                                             </td>
                                             <td className="p-6">
-                                                <span className={`px-6 py-2 rounded-2xl font-black text-lg ${p.stock_quantity <= p.min_threshold ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
-                                                    {p.stock_quantity}
+                                                <span className={`px-6 py-2 rounded-2xl font-black text-lg ${(p.stock_quantity ?? 0) <= (p.min_threshold ?? 0) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                                                    {p.stock_quantity ?? 0}
                                                 </span>
                                             </td>
                                             <td className="p-6">

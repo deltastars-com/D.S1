@@ -558,7 +558,7 @@ export const OrderAnalyticsCharts: React.FC<OrderAnalyticsChartsProps> = ({
                     outerRadius={95}
                     paddingAngle={4}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
                   >
                     {statusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -594,7 +594,7 @@ export const OrderAnalyticsCharts: React.FC<OrderAnalyticsChartsProps> = ({
                     outerRadius={95}
                     paddingAngle={4}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
                   >
                     {paymentData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />

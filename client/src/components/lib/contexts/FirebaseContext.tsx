@@ -299,11 +299,11 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // جلب طلبات العميل العادي
   useEffect(() => {
     let isMounted = true;
-    if (!user || ['admin', 'developer', 'gm', 'ops'].includes(user.role)) return;
-
+        if (!user?.id || ['admin', 'developer', 'gm', 'ops'].includes(user.role ?? '')) return;
+    const userId = user.id;
     const fetchUserOrders = async () => {
       try {
-        const { data, error } = await supabase.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false });
         if (error) throw error;
         if (isMounted) setOrders(data as any);
       } catch (err) { console.error('Error fetching user orders:', err); }
@@ -566,7 +566,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       } catch (e) { console.warn('Onyx sync failed', e); }
 
-      const assignedBranch = branches.find(b => b.id === orderData.branchId.toString()) || branches[0];
+      const assignedBranch = branches.find(b => b.id === (orderData.branchId ?? '').toString()) || branches[0];
       const availableDrivers = deliveryAgents.filter(a => a.status === 'online');
       let assignedDriverId = availableDrivers.length > 0 ? availableDrivers[0].id : '';
       

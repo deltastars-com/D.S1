@@ -116,6 +116,7 @@ export async function chatWithOday(
  * punctuation and extra whitespace, lowercases Latin chars.
  */
 function normalizeArabic(text: string): string {
+  const nonLetterOrNumber = new RegExp('[^\\p{L}\\p{N}\\s]', 'gu');
   return text
     .replace(/[\u064B-\u065F\u0670]/g, '')          // diacritics
     .replace(/[إأآا]/g, 'ا')
@@ -123,7 +124,7 @@ function normalizeArabic(text: string): string {
     .replace(/ة/g, 'ه')
     .replace(/ؤ/g, 'و')
     .replace(/ئ/g, 'ي')
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(nonLetterOrNumber, ' ')
     .toLowerCase()
     .replace(/\s+/g, ' ')
     .trim();

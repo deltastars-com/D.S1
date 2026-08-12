@@ -208,8 +208,8 @@ export const ProductManagementSection: React.FC = () => {
                                 <td className="p-4 md:p-6 font-black text-secondary text-base md:text-xl">{p.price} ر.س</td>
                                 <td className="p-4 md:p-6">
                                     <div className="flex items-center gap-2 md:gap-3">
-                                        <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${p.stock_quantity > p.min_threshold ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`}></div>
-                                        <span className="font-black text-slate-600 text-sm md:text-base">{p.stock_quantity} {p.unit_ar}</span>
+                                        <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${(p.stock_quantity ?? 0) > (p.min_threshold ?? 0) ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`}></div>
+                                        <span className="font-black text-slate-600 text-sm md:text-base">{p.stock_quantity ?? 0} {p.unit_ar}</span>
                                     </div>
                                 </td>
                                 <td className="p-4 md:p-6">

@@ -85,7 +85,7 @@ export function useFCMOrderNotifications(userId?: string) {
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           new Notification(update.titleAr, {
             body: update.messageAr,
-            icon: '/icon-192.png',
+            icon: '/official_logo.png',
             tag: `order-${update.orderId}`
           });
         }
@@ -162,7 +162,7 @@ export function useFCMOrderNotifications(userId?: string) {
             if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
               new Notification(update.titleAr, {
                 body: update.messageAr,
-                icon: '/icon-192.png',
+                icon: '/official_logo.png',
                 tag: `order-${id}`
               });
             }

@@ -49,7 +49,7 @@ export default function DelegatesManagement() {
     portal_auth_code: ''
   });
 
-  const isAuthorized = user && ['admin', 'developer', 'ops', 'gm', 'branch_manager'].includes(user.role);
+  const isAuthorized = user && ['admin', 'developer', 'ops', 'gm', 'branch_manager'].includes(user.role ?? '');
 
   useEffect(() => {
     if (!db || !isAuthorized) {

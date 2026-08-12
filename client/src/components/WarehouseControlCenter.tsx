@@ -7,7 +7,7 @@ import { BRANCH_LOCATIONS } from '../constants';
 import { api } from '@/services/api';
 
 interface WarehouseControlCenterProps {
-  user: User;
+  user?: User | null;
   onBack?: () => void;
 }
 

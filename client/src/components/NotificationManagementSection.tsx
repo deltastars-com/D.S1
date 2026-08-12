@@ -26,7 +26,7 @@ export const NotificationManagementSection: React.FC = () => {
         type: 'promo' // promo, info, warning, success, error, order
     });
 
-    const isAuthorized = user && ['admin', 'developer', 'ops', 'gm', 'branch_manager'].includes(user.role);
+    const isAuthorized = user && ['admin', 'developer', 'ops', 'gm', 'branch_manager'].includes(user.role ?? '');
 
     // Real-time subscriptions
     useEffect(() => {

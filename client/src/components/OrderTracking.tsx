@@ -71,10 +71,10 @@ const RouteDisplay = ({ origin, destination }: {
       destination,
       travelMode: 'DRIVING',
       fields: ['path', 'distanceMeters', 'durationMillis', 'viewport'],
-    }).then(({ routes }) => {
+    }).then(({ routes }: { routes?: Array<{ createPolylines: () => google.maps.Polyline[] }> }) => {
       if (routes?.[0]) {
         const newPolylines = routes[0].createPolylines();
-        newPolylines.forEach(p => {
+        newPolylines.forEach((p: google.maps.Polyline) => {
           p.setOptions({
             strokeColor: '#059669', // Emerald/Delta Green
             strokeWeight: 5,
@@ -85,7 +85,7 @@ const RouteDisplay = ({ origin, destination }: {
         });
         polylinesRef.current = newPolylines;
       }
-    }).catch(err => {
+    }).catch((err: unknown) => {
       console.warn("Routes API failed, drawing simple direct line:", err);
       // Fallback: draw a direct polyline between driver and destination
       const directPolyline = new google.maps.Polyline({

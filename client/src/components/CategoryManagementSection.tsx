@@ -127,13 +127,13 @@ export const CategoryManagementSection: React.FC<CategoryManagementSectionProps>
                         </tr>
                     </thead>
                     <tbody>
-                        {categories.sort((a, b) => a.order - b.order).map(cat => (
+                        {categories.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map(cat => (
                             <tr key={cat.key} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                                 <td className="p-4 text-2xl">{cat.icon}</td>
                                 <td className="p-4 font-mono text-sm text-gray-500">{cat.key}</td>
                                 <td className="p-4 font-bold">{cat.label_ar}</td>
                                 <td className="p-4">{cat.label_en}</td>
-                                <td className="p-4">{cat.order}</td>
+                                <td className="p-4">{cat.order ?? 0}</td>
                                 <td className="p-4">
                                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${cat.isVisible ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                                         {cat.isVisible ? 'مرئي' : 'مخفي'}

@@ -38,6 +38,25 @@ export const DeltaStarsCore = {
         await this.findAndAssignDriver(order);
     },
 
+    // إسناد مندوب متاح مع الحفاظ على الطلب دون تغيير إذا لم يوجد مندوب.
+    async findAndAssignDriver(order: any) {
+        const { data: driver, error } = await supabase
+            .from('delivery_agents')
+            .select('id')
+            .eq('status', 'online')
+            .limit(1)
+            .maybeSingle();
+
+        if (error || !driver?.id || !order?.id) return null;
+
+        const { error: updateError } = await supabase
+            .from('orders')
+            .update({ driverId: driver.id, status: 'preparing' })
+            .eq('id', order.id);
+
+        return updateError ? null : driver.id;
+    },
+
     // 3. أتمتة الفواتير (نظام PDF المحدث)
     async generateInvoice(order: any) {
         const doc = new jsPDF();
