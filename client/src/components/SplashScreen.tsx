@@ -46,11 +46,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, logoPath
   ];
 
   const onCompleteRef = useRef(onComplete);
+
+  const handleDismiss = useCallback(() => {
+    setIsVisible(false);
+    onComplete();
+  }, [onComplete]);
+
   useEffect(() => {
     const t = setTimeout(() => {
       setIsVisible(false);
       onComplete();
-    }, 1500);
+    }, 1800);
     return () => clearTimeout(t);
   }, [onComplete]);
 

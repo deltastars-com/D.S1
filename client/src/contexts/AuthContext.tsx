@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     loadSession();
 
-    // التزامن الآمن مع Firebase
+    // التزامن الآمن مع Firebase مع احترام الجلسات المحلية (مثل الإدارة والمطور وOTP)
     const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       if (fbUser) {
         try {
@@ -112,10 +112,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Error syncing firebase user:', err);
         }
       } else {
-        // تنظيف الجلسة في حال عدم وجود مستخدم لضمان عدم التعليق في حالة وهمية
-        setUser(null);
-        localStorage.removeItem(STORAGE_KEY);
-        sessionStorage.removeItem(SESSION_KEY);
+        // التحقق مما إذا كانت هناك جلسة محلية صالحة (الإدارة، المطور، أو OTP) قبل المسح
+        const currentStored = localStorage.getItem(STORAGE_KEY);
+        if (!currentStored) {
+          setUser(null);
+          sessionStorage.removeItem(SESSION_KEY);
+        } else {
+          try {
+            const parsed = JSON.parse(currentStored);
+            if (parsed && (parsed.role === 'admin' || parsed.role === 'developer' || parsed.phone)) {
+              setUser(parsed);
+              console.log('✅ Preserved valid local sovereign session:', parsed.email || parsed.phone);
+            }
+          } catch {
+            setUser(null);
+            localStorage.removeItem(STORAGE_KEY);
+            sessionStorage.removeItem(SESSION_KEY);
+          }
+        }
       }
       setIsLoading(false);
     });
@@ -326,13 +340,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if ((rawUser === "marketing@deltastars-ksa.com" || rawUser === "admin" || rawUser === "ali aldahan") && rawPass === "Ali773597404***%") {
       const adminUser = { id: "admin-1", name: "Ali Al dahan", email: "marketing@deltastars-ksa.com", role: "admin", type: "admin", permissions: ["all"], force_password_change: false };
       setUser(adminUser);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(adminUser));
       localStorage.setItem("delta_user_session_v3", JSON.stringify(adminUser));
+      sessionStorage.setItem(SESSION_KEY, Date.now().toString());
       return { success: true, needsPasswordChange: false };
     }
     if ((rawUser === "deltastars777@gmail.com" || rawUser === "developer") && rawPass === "733691903***%$") {
       const devUser = { id: "dev-1", name: "Delta Developer", email: "deltastars777@gmail.com", role: "developer", type: "developer", permissions: ["all"], force_password_change: false };
       setUser(devUser);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(devUser));
       localStorage.setItem("delta_user_session_v3", JSON.stringify(devUser));
+      sessionStorage.setItem(SESSION_KEY, Date.now().toString());
       return { success: true, needsPasswordChange: false };
     }
     setIsLoading(true);

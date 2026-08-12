@@ -576,8 +576,10 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onToggl
 
             {[
               ...navItems,
-              { id: 'vip_login', label: t('home.hero.vipButton'), icon: <UserIcon className="w-5 h-5" /> },
-              { id: 'admin_login', label: t('header.adminGate'), icon: <ShieldCheckIcon className="w-5 h-5" /> }
+              ...(isAuthenticated ? [] : [
+                { id: 'vip_login', label: t('home.hero.vipButton'), icon: <UserIcon className="w-5 h-5" /> },
+                { id: 'admin_login', label: t('header.adminGate'), icon: <ShieldCheckIcon className="w-5 h-5" /> }
+              ])
             ].map((item, index) => (
               <motion.button
                 key={item.id}

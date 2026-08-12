@@ -1,7 +1,7 @@
 {
   "appId": "com.deltastars.store",
   "appName": "Delta Stars - متجر نجوم دلتا",
-  "webDir": "dist",
+  "webDir": "dist/public",
   "bundledWebRuntime": false,
   "plugins": {
     "SplashScreen": {
