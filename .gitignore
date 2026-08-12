@@ -15,8 +15,8 @@ build/
 .env.production.local
 
 # Android signing material — never commit private keystores
-android/*.jks
-android/*.keystore
+android/**/*.jks
+android/**/*.keystore
 *.jks
 *.keystore
 
