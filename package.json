@@ -132,7 +132,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@builder.io/vite-plugin-jsx-loc": "^0.1.1",
     "@types/express": "^5.0.6",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^24.7.0",
