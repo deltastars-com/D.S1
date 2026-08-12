@@ -78,7 +78,7 @@ export default function App() {
     }
   });
 
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
   }, []);

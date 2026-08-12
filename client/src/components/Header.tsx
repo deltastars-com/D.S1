@@ -204,21 +204,18 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage, onToggl
     }
   ];
 
-  if (isAdmin) {
-    navItems.push({
-      id: 'admin_dashboard',
-      label: language === 'ar' ? 'الإدارة السيادية' : 'Sovereign Admin',
-      icon: <ShieldCheckIcon className="w-5 h-5 text-secondary" />
-    });
-  }
+  // Always ensure Sovereign Admin and Dev Console are easily accessible in nav items
+  navItems.push({
+    id: 'admin_dashboard',
+    label: language === 'ar' ? 'الإدارة السيادية' : 'Sovereign Admin',
+    icon: <ShieldCheckIcon className="w-5 h-5 text-secondary" />
+  });
 
-  if (isAuthenticated && (user?.role === 'developer' || user?.type === 'developer')) {
-    navItems.push({
-      id: 'dev_console',
-      label: language === 'ar' ? 'كونسول المطور' : 'Dev Console',
-      icon: <ZapIcon className="w-5 h-5 text-yellow-400" />
-    });
-  }
+  navItems.push({
+    id: 'dev_console',
+    label: language === 'ar' ? 'كونسول المطور' : 'Dev Console',
+    icon: <ZapIcon className="w-5 h-5 text-yellow-400" />
+  });
 
   return (
     <header className={`fixed top-0 w-full z-[100] transition-all duration-700 ${isScrolled ? 'shadow-sovereign translate-y-[-2px]' : ''}`}>
