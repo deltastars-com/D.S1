@@ -31,7 +31,6 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
-    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "@capacitor/geolocation": "^8.1.0",
@@ -133,7 +132,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@builder.io/vite-plugin-jsx-loc": "^0.1.1",
     "@types/express": "^5.0.6",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^24.7.0",
@@ -141,17 +139,5 @@
     "@types/react-dom": "^18.3.7",
     "pngjs": "^7.0.0",
     "vite-plugin-manus-runtime": "^0.0.59"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@firebase/util",
-      "@google/genai",
-      "@prisma/client",
-      "@prisma/engines",
-      "core-js",
-      "esbuild",
-      "prisma",
-      "protobufjs"
-    ]
   }
 }

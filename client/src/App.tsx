@@ -9,7 +9,6 @@ import { mockProducts } from './components/lib/vip/products';
 import { Product, CategoryKey } from './types';
 
 // Core Store Page Components (Eager Load for instant SPA rendering)
-import { SplashScreen } from './components/SplashScreen';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import HomePage from './components/HomePage';
@@ -46,7 +45,7 @@ import { runSystemStartupHealthCheck } from './services/systemHealth';
  * يتجنب أي مشاكل في التوجيه عند عرض الشعار في واجهات المتجر المختلفة
  */
 export function validateAndGetLogoPath(): string {
-  return '/official_logo.png?v=2026';
+  return '/official_logo.svg?v=2026';
 }
 
 export default function App() {
@@ -77,20 +76,6 @@ export default function App() {
       return 'home';
     }
   });
-
-  const [showSplash, setShowSplash] = useState(false);
-  const handleSplashComplete = useCallback(() => {
-    setShowSplash(false);
-  }, []);
-
-  // Absolute Failsafe: Guarantee the welcome splash screen is dismissed after exactly 2.8 seconds
-  // to prevent any hanging or freeze on any device/platform and align with smooth animations.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2800);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Automated System Health Check on Startup
   useEffect(() => {
@@ -391,23 +376,8 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    if (showSplash) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showSplash]);
-
   return (
     <div className={`min-h-screen flex flex-col bg-slate-50 text-slate-900 ${ar ? 'font-cairo' : 'font-sans'}`} dir={ar ? 'rtl' : 'ltr'}>
-      {/* ── Overlaid Premium Welcome Splash Screen ── */}
-      {showSplash && (
-        <SplashScreen onComplete={handleSplashComplete} logoPath={logoPath} />
-      )}
       {/* ── Header ── */}
       <Header
         onNavigate={handleNavigate}

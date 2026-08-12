@@ -22,3 +22,4 @@ allowBuilds:
   esbuild: true
   prisma: true
   protobufjs: true
+  sharp: set this to true or false
