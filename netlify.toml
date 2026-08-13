@@ -1,0 +1,17 @@
+# Delta Stars — Netlify deployment
+# Build: pnpm build:netlify (vite build) → publishes dist/public
+[build]
+  command = "pnpm build:netlify"
+  publish = "dist/public"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Basic security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), geolocation=(self), microphone=()"

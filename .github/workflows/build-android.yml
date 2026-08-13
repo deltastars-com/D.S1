@@ -1,0 +1,208 @@
+#═══════════════════════════════════════════════════════════
+#  Delta Stars — بناء Android (APK + AAB) تلقائياً
+#  - يعتمد على pnpm (ملف القفل pnpm-lock.yaml) وليس npm ci
+#  - إذا وُجدت أسرار التوقيع: يبني APK + AAB موقّعين رسمياً
+#    (ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_PASSWORD)
+#  - إذا لم توجد: يبني APK موقّع DEBUG — قابل للتثبيت المباشر
+#    على أي جهاز أندرويد (Sideload) مع تسمية واضحة
+#  - يرفع الملفات إلى GitHub Releases عند دفع وسم v*
+#═══════════════════════════════════════════════════════════
+name: 🤖 Build Android (APK + AAB)
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'نوع الإصدار'
+        required: true
+        default: 'release'
+        type: choice
+        options: [debug, release]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  JAVA_VERSION: '21'
+
+jobs:
+  build:
+    name: بناء تطبيق أندرويد
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🟢 Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: ☕ Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: 🤖 Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+
+      - name: 📦 Install dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔎 Type check
+        run: pnpm typecheck
+
+      - name: 🏗️ Build web bundle
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_GEMINI_KEY: ${{ secrets.VITE_GEMINI_KEY }}
+          VITE_MAPS_KEY: ${{ secrets.VITE_MAPS_KEY }}
+          VITE_MOYASAR_PUBLISHABLE_KEY: ${{ secrets.VITE_MOYASAR_PUBLISHABLE_KEY }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+          VITE_ADMIN_BOOTSTRAP_PASSWORD: ${{ secrets.VITE_ADMIN_BOOTSTRAP_PASSWORD }}
+          VITE_DEV_BOOTSTRAP_PASSWORD: ${{ secrets.VITE_DEV_BOOTSTRAP_PASSWORD }}
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: pnpm build:netlify
+
+      - name: 📲 Capacitor sync (Android)
+        run: |
+          npx cap add android || echo "android platform exists"
+          npx cap sync android
+          npx cap copy android
+
+      - name: 🔐 إعداد مفتاح التوقيع
+        id: signing
+        shell: bash
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/delta-production-key.jks
+            echo "✅ تم فك تشفير مفتاح التوقيع من أسرار GitHub"
+          elif [ -f android/app/delta-production-key.jks ]; then
+            echo "✅ مفتاح التوقيع الملتزم في المستودع جاهز"
+          fi
+          if [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && [ -n "$ANDROID_KEY_PASSWORD" ] && [ -f android/app/delta-production-key.jks ]; then
+            echo "✅ وضع التوقيع: RELEASE (موقّع رسمياً)"
+            echo "mode=release" >> "$GITHUB_OUTPUT"
+          else
+            echo "⚠️ أسرار التوقيع غير مضبوطة (ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_PASSWORD)"
+            echo "   سيتم بناء APK موقّع DEBUG — قابل للتثبيت المباشر على أي جهاز."
+            echo "   لإصدار موقّع رسمياً (Release APK + AAB) أضف الأسرار من:"
+            echo "   GitHub → Settings → Secrets and variables → Actions"
+            echo "mode=debug" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: 🔨 Build APK
+        working-directory: android
+        env:
+          DELTA_KEYSTORE_FILE: delta-production-key.jks
+          DELTA_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          DELTA_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || 'deltastars-key' }}
+          DELTA_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          SIGNING_MODE: ${{ steps.signing.outputs.mode }}
+        run: |
+          chmod +x gradlew
+          if [ "$SIGNING_MODE" = "release" ]; then
+            ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
+          else
+            ./gradlew clean assembleDebug --no-daemon --stacktrace
+          fi
+
+      - name: 🔍 Verify output
+        run: |
+          APK=$(find android/app/build/outputs -name "*.apk" | head -1)
+          $ANDROID_HOME/build-tools/36.0.0/aapt2 dump badging "$APK" | head -12 || true
+          $ANDROID_HOME/build-tools/36.0.0/apksigner verify --verbose "$APK" || echo "⚠️ apksigner تحذير (متوقع في وضع DEBUG)"
+
+      - name: 🏷️ Rename artifacts + checksums
+        run: |
+          mkdir -p output
+          VER=$(grep -oP 'versionName "\K[^"]+' android/app/build.gradle)
+          MODE=${{ steps.signing.outputs.mode }}
+          if [ "$MODE" = "release" ]; then
+            find android/app/build/outputs/apk/release -name "*.apk" -exec cp {} "output/DeltaStars-v${VER}.apk" \;
+            find android/app/build/outputs/bundle/release -name "*.aab" -exec cp {} "output/DeltaStars-v${VER}.aab" \; 2>/dev/null || true
+          else
+            find android/app/build/outputs/apk/debug -name "*.apk" -exec cp {} "output/DeltaStars-v${VER}-debug.apk" \;
+          fi
+          cp client/public/privacy-policy.html output/privacy-policy.html
+          cp DEPLOYMENT.md output/DEPLOYMENT.md
+          cp README_AR.md output/README_AR.md
+          cd output
+          find . -maxdepth 1 \( -name "*.apk" -o -name "*.aab" \) -exec shasum -a 256 {} \; > SHA256SUMS-android.txt
+          cat SHA256SUMS-android.txt
+          ls -lh output/ || ls -lh .
+
+      - name: ⬆️ Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeltaStars-APK
+          path: output/*.apk
+          retention-days: 90
+
+      - name: ⬆️ Upload AAB (release only)
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeltaStars-AAB
+          path: output/*.aab
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: 📤 GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            output/*.apk
+            output/*.aab
+            output/SHA256SUMS-android.txt
+            output/privacy-policy.html
+            output/DEPLOYMENT.md
+            output/README_AR.md
+          fail_on_unmatched_files: false
+          generate_release_notes: true
+          body: |
+            ## 🌟 Delta Stars | متجر نجوم دلتا
+
+            ### 📥 التنزيلات المباشرة
+            - `DeltaStars-*.apk` — تثبيت مباشر على أندرويد
+            - `DeltaStars-*.aab` — لرفعه على Google Play Console
+
+            ### 🔐 حالة التوقيع
+            ${{ steps.signing.outputs.mode == 'release' && 'موقّع رسمياً (Release) — يتثبّت فوق النسخ القديمة بلا حذف' || 'DEBUG — قابل للتثبيت المباشر (Sideload). لإصدار موقّع رسمياً أضف أسرار ANDROID_KEYSTORE_PASSWORD و ANDROID_KEY_PASSWORD ثم أعد تشغيل البناء' }}
+
+            ### 🏪 ملفات المتاجر
+            - `privacy-policy.html` — سياسة الخصوصية (متطلب Google Play & App Store)
+            - `SHA256SUMS-android.txt` — مجاميع التحقق من سلامة الملفات
+
+            ### ✨ يشمل هذا الإصدار
+            - لوحات التحكم (الإدارة، المطور، السائقين، المحاسبة، المخازن)
+            - الحماية البيومترية (البصمة + التعرف على الوجه)
+            - إشعارات فورية FCM
+            - تتبع GPS مباشر للسائقين
+            - المساعد الذكي (عدي)
+            - الدفع عبر Moyasar
+        continue-on-error: true

@@ -1,0 +1,94 @@
+#═══════════════════════════════════════════════════════════
+#  Delta Stars — فحص الجودة التلقائي (CI)
+#  يكتشف أي خطأ في الكود تلقائياً على كل push / PR:
+#   - تثبيت التبعيات عبر pnpm (ملف القفل pnpm-lock.yaml ملتزم)
+#   - فحص الأنواع (TypeScript) بصرامة
+#   - تشغيل الاختبارات
+#   - فحص الأمان (مفاتيح مكشوفة)
+#   - بناء الإنتاج الكامل (موقع ثابت + PWA)
+#   - أرشفة مخرجات البناء
+#
+#  ملاحظة: المشروع يستخدم pnpm ولا يحتوي على package-lock.json،
+#  لذا فإن استخدام npm ci (الذي يتطلب ملف قفل npm) يفشل دائماً.
+#  جميع سير العمل هنا تعتمد على pnpm مع pnpm-lock.yaml الملتزم.
+#═══════════════════════════════════════════════════════════
+name: 🔍 فحص الجودة التلقائي (CI)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: ✅ الفحص والبناء
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: ⬇️ سحب الكود
+        uses: actions/checkout@v4
+
+      - name: 🟢 إعداد pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🟢 إعداد Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 📦 تثبيت التبعيات (pnpm-lock.yaml)
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔎 فحص الأنواع (صارم — يوقف عند أي خطأ)
+        run: pnpm typecheck
+
+      - name: 🧪 تشغيل الاختبارات
+        run: pnpm test
+
+      - name: 🔐 فحص المفاتيح المكشوفة
+        run: |
+          ! grep -rInE "(sk_live_[A-Za-z0-9]{10,}|pk_live_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC )?PRIVATE KEY-----)" client/src server shared --include="*.ts" --include="*.tsx" --include="*.js" --include="*.mjs" \
+            || (echo "❌ مفتاح/سر مكشوف في الكود! ارفعه إلى أسرار GitHub بدلاً منه." && exit 1)
+          echo "✅ لا توجد أسرار مكشوفة"
+
+      - name: 🏗️ بناء الإنتاج (موقع ثابت + PWA)
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_GEMINI_KEY: ${{ secrets.VITE_GEMINI_KEY }}
+          VITE_MAPS_KEY: ${{ secrets.VITE_MAPS_KEY }}
+          VITE_MOYASAR_PUBLISHABLE_KEY: ${{ secrets.VITE_MOYASAR_PUBLISHABLE_KEY }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+          VITE_ADMIN_BOOTSTRAP_PASSWORD: ${{ secrets.VITE_ADMIN_BOOTSTRAP_PASSWORD }}
+          VITE_DEV_BOOTSTRAP_PASSWORD: ${{ secrets.VITE_DEV_BOOTSTRAP_PASSWORD }}
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: pnpm build:netlify
+
+      - name: 📊 تقرير حجم الحزمة
+        run: |
+          echo "### 📦 تقرير الحزمة" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          du -sh dist >> $GITHUB_STEP_SUMMARY
+          find dist/public -name "*.js" -size +900k -exec echo "⚠️ حزمة كبيرة: {}" \; >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "✅ انتهى التقرير"
+
+      - name: ⬆️ أرشفة مخرجات البناء
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-web
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
