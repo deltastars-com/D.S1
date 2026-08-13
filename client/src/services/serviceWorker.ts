@@ -3,7 +3,7 @@
  * يوفر تخزيناً مؤقتاً للموارد والبيانات دون تعطيل الإقلاع.
  */
 
-const CACHE_NAME = 'delta-stars-v2';
+const CACHE_NAME = 'delta-stars-v3-brand-2026';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 const projectRoot = resolve(import.meta.dirname, '..');
 const publicDir = resolve(projectRoot, 'client/public');
 const androidResDir = resolve(projectRoot, 'android/app/src/main/res');
-const expectedOfficialIconSha256 = 'accab75695d7e222f18f13021e5f339af97af18d10920575f813222e6c2f9c57';
+const expectedOfficialIconSha256 = '3c832323520c150e03bbd5ae39dc714208d2c9bf63be6fc2b64f9ba56ed803d9';
 
 function sha256(path: string) {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -18,6 +18,8 @@ describe('Delta Stars final release assets', () => {
     expect(sha256(icon)).toBe(expectedOfficialIconSha256);
     expect(readFileSync(resolve(publicDir, 'favicon.png'))).toEqual(readFileSync(icon));
     expect(readFileSync(resolve(publicDir, 'apple-touch-icon.png'))).toEqual(readFileSync(icon));
+    expect(readFileSync(resolve(publicDir, 'icon-192.png'))).toEqual(readFileSync(icon));
+    expect(readFileSync(resolve(publicDir, 'icon-512.png'))).toEqual(readFileSync(icon));
   });
 
   it('uses PNG-only PWA references and valid Android launcher resources', () => {
@@ -30,6 +32,8 @@ describe('Delta Stars final release assets', () => {
     for (const density of ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']) {
       expect(existsSync(resolve(androidResDir, `mipmap-${density}/ic_launcher.png`))).toBe(true);
       expect(existsSync(resolve(androidResDir, `mipmap-${density}/ic_launcher_round.png`))).toBe(true);
+      expect(sha256(resolve(androidResDir, `mipmap-${density}/ic_launcher.png`))).toBe(expectedOfficialIconSha256);
+      expect(sha256(resolve(androidResDir, `mipmap-${density}/ic_launcher_round.png`))).toBe(expectedOfficialIconSha256);
     }
   });
 });

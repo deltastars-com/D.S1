@@ -45,7 +45,7 @@ import { runSystemStartupHealthCheck } from './services/systemHealth';
  * يتجنب أي مشاكل في التوجيه عند عرض الشعار في واجهات المتجر المختلفة
  */
 export function validateAndGetLogoPath(): string {
-  return '/official_logo.svg?v=2026';
+  return '/official_logo.png?v=2026';
 }
 
 export default function App() {
