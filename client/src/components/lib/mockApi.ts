@@ -14,7 +14,7 @@ const mockApi = (url: RequestInfo | URL, options?: RequestInit): Promise<Respons
             const data = localStorage.getItem(ADMIN_AUTH_KEY);
             if (data) return JSON.parse(data);
         } catch (e) {}
-        const defaultAuth = { password: '733691903***%$', isDefault: true };
+        const defaultAuth = { password: import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD || '', isDefault: true };
         localStorage.setItem(ADMIN_AUTH_KEY, JSON.stringify(defaultAuth));
         return defaultAuth;
     };
@@ -30,7 +30,7 @@ const mockApi = (url: RequestInfo | URL, options?: RequestInit): Promise<Respons
             const { username, password } = JSON.parse(options.body as string);
             const auth = getAdminAuth();
             const isAdmin = username.toLowerCase() === 'marketing@deltastars-ksa.com' || username.toLowerCase() === 'admin' || username.toLowerCase() === 'ali aldahan';
-            const isCorrectPass = password === auth.password || password === 'Ali773597404***%' || password === '733691903***%$' || password === '321666' || password === '733691903***' || password === '321666***';
+            const isCorrectPass = password === auth.password || password === import.meta.env.VITE_ADMIN_BOOTSTRAP_PASSWORD || password === import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD;
             
             if (isAdmin && isCorrectPass) {
                 return Promise.resolve(new Response(JSON.stringify({ 

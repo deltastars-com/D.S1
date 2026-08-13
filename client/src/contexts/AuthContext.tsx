@@ -337,7 +337,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginToAdminDashboard = useCallback(async (username: string, password: string) => {
     const rawUser = (username || "").trim().toLowerCase();
     const rawPass = (password || "").trim();
-    if ((rawUser === "marketing@deltastars-ksa.com" || rawUser === "admin" || rawUser === "ali aldahan") && rawPass === "Ali773597404***%") {
+    // Bootstrap passwords come from build-time env vars so they are never committed to source.
+    // When the vars are unset, bootstrap login is disabled entirely.
+    const adminBootstrapPassword = import.meta.env.VITE_ADMIN_BOOTSTRAP_PASSWORD || "__DISABLED__";
+    const devBootstrapPassword = import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD || "__DISABLED__";
+    if ((rawUser === "marketing@deltastars-ksa.com" || rawUser === "admin" || rawUser === "ali aldahan") && rawPass === adminBootstrapPassword) {
       const adminUser: User = { id: "admin-1", name: "Ali Al dahan", email: "marketing@deltastars-ksa.com", role: "admin", type: "admin", permissions: ["all"], force_password_change: false };
       setUser(adminUser);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(adminUser));
@@ -345,7 +349,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionStorage.setItem(SESSION_KEY, Date.now().toString());
       return { success: true, needsPasswordChange: false };
     }
-    if ((rawUser === "deltastars777@gmail.com" || rawUser === "developer") && rawPass === "733691903***%$") {
+    if ((rawUser === "deltastars777@gmail.com" || rawUser === "developer") && rawPass === devBootstrapPassword) {
       const devUser: User = { id: "dev-1", name: "Delta Developer", email: "deltastars777@gmail.com", role: "developer", type: "developer", permissions: ["all"], force_password_change: false };
       setUser(devUser);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(devUser));
@@ -360,8 +364,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Bootstrap access is deliberately narrow and expires after the first password change.
     // Production authentication should use Firebase/Supabase; these values are only a first-login bridge.
     const bootstrapPasswordChanged = localStorage.getItem('delta_bootstrap_password_changed') === 'true';
-    const bootstrapAdminPassword = 'Ali773597404***%';
-    const bootstrapDeveloperPassword = '733691903***%$';
+    const bootstrapAdminPassword = adminBootstrapPassword;
+    const bootstrapDeveloperPassword = devBootstrapPassword;
     const lowerUser = trimmedUsername.toLowerCase();
     const isAdminUser = [
       'admin',
