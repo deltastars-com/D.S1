@@ -1,0 +1,104 @@
+#═══════════════════════════════════════════════════════════
+#  Delta Stars — إصدار الويب (موقع ثابت + PWA + الوثائق)
+#  على دفع وسم v*: يبني الموقع الثابت ويرفع حزمة الويب
+#  وسياسة الخصوصية والوثائق إلى GitHub Releases.
+#  (ملفات المصدر الكاملة تُرفع تلقائياً من GitHub كأرشيفات)
+#═══════════════════════════════════════════════════════════
+name: 🌐 Release Web (Static + PWA)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: web-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: بناء وإصدار الويب
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 🟢 Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 📦 Install dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build static site + PWA
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_GEMINI_KEY: ${{ secrets.VITE_GEMINI_KEY }}
+          VITE_MAPS_KEY: ${{ secrets.VITE_MAPS_KEY }}
+          VITE_MOYASAR_PUBLISHABLE_KEY: ${{ secrets.VITE_MOYASAR_PUBLISHABLE_KEY }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: pnpm build:netlify
+
+      - name: 📦 تجهيز حزمة الإصدار
+        run: |
+          VER=$(node -p "require('./package.json').version")
+          mkdir -p output
+          # الموقع الثابت + ملفات PWA
+          cp -r dist/public "output/web-v${VER}"
+          cp client/public/privacy-policy.html output/privacy-policy.html
+          cp client/public/manifest.json output/manifest.json
+          cp client/public/robots.txt output/robots.txt
+          cp client/public/sitemap.xml output/sitemap.xml
+          # الوثائق
+          cp DEPLOYMENT.md output/DEPLOYMENT.md
+          cp README_AR.md output/README_AR.md
+          cp todo.md output/PROJECT_TODO.md
+          cd output && zip -r "DeltaStars-web-v${VER}.zip" "web-v${VER}" && shasum -a 256 *.zip > SHA256SUMS-web.txt
+          ls -lh output/
+
+      - name: ⬆️ Upload web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeltaStars-Web
+          path: output/
+          retention-days: 90
+
+      - name: 📤 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            output/DeltaStars-web-*.zip
+            output/SHA256SUMS-web.txt
+            output/privacy-policy.html
+            output/manifest.json
+            output/robots.txt
+            output/sitemap.xml
+            output/DEPLOYMENT.md
+            output/README_AR.md
+            output/PROJECT_TODO.md
+          fail_on_unmatched_files: false
+          generate_release_notes: true
+          body: |
+            ## 🌟 Delta Stars | متجر نجوم دلتا — إصدار الويب
+
+            ### 📦 محتويات الإصدار
+            - `DeltaStars-web-*.zip` — الموقع الثابت الكامل مع ملفات PWA
+            - `privacy-policy.html` — سياسة الخصوصية
+            - `manifest.json`, `robots.txt`, `sitemap.xml` — ملفات PWA وSEO
+            - `DEPLOYMENT.md`, `README_AR.md`, `PROJECT_TODO.md` — الوثائق
+            - أكواد المصدر الكاملة متاحة تلقائياً في أرشيفات Source code (zip/tar.gz)
+        continue-on-error: true
