@@ -55,7 +55,11 @@ jobs:
 
       - name: 📦 تجهيز حزمة الإصدار
         run: |
-          VER=$(node -p "require('./package.json').version")
+          # رقم الإصدار من الوسم (مثل v5.3.2) أو من package.json عند التشغيل اليدوي
+          VER="${GITHUB_REF_NAME#v}"
+          if [ -z "$VER" ] || [ "$GITHUB_REF_NAME" = "$VER" ]; then
+            VER=$(node -p "require('./package.json').version")
+          fi
           mkdir -p output
           # الموقع الثابت + ملفات PWA
           cp -r dist/public "output/web-v${VER}"
@@ -67,8 +71,11 @@ jobs:
           cp DEPLOYMENT.md output/DEPLOYMENT.md
           cp README_AR.md output/README_AR.md
           cp todo.md output/PROJECT_TODO.md
-          cd output && zip -r "DeltaStars-web-v${VER}.zip" "web-v${VER}" && shasum -a 256 *.zip > SHA256SUMS-web.txt
-          ls -lh output/
+          # الحزمة + المجاميع (داخل مجلد output مباشرة)
+          cd output
+          zip -r "DeltaStars-web-v${VER}.zip" "web-v${VER}"
+          shasum -a 256 *.zip > SHA256SUMS-web.txt
+          ls -lh
 
       - name: ⬆️ Upload web artifact
         uses: actions/upload-artifact@v4
