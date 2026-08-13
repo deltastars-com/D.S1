@@ -71,6 +71,8 @@ jobs:
           VITE_MAPS_KEY: ${{ secrets.VITE_MAPS_KEY }}
           VITE_MOYASAR_PUBLISHABLE_KEY: ${{ secrets.VITE_MOYASAR_PUBLISHABLE_KEY }}
           VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+          VITE_ADMIN_BOOTSTRAP_PASSWORD: ${{ secrets.VITE_ADMIN_BOOTSTRAP_PASSWORD }}
+          VITE_DEV_BOOTSTRAP_PASSWORD: ${{ secrets.VITE_DEV_BOOTSTRAP_PASSWORD }}
           NODE_OPTIONS: '--max-old-space-size=4096'
         run: pnpm build:netlify
 

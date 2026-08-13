@@ -54,7 +54,7 @@ import { sanitizeEmailForDisplay } from '../constants';
 /**
  * Delta Stars Sovereign Developer Operating System (DevOS)
  * This is the core management interface for high-level operations.
- * Highly secured via PIN (321666) and Biometric MFA.
+ * Highly secured via PIN (env-configured) and Biometric MFA.
  */
 
 // --- Specialized Dashboard Modules ---
@@ -735,8 +735,8 @@ const SecuritySection: React.FC<{ addLog?: (msg: string, type: 'info'|'err'|'war
     try {
       const saved = localStorage.getItem('delta_portal_passwords');
       return saved ? JSON.parse(saved) : {
-        adminPass: 'Ali773597404***%',
-        devPin: '733691903***%$',
+        adminPass: import.meta.env.VITE_ADMIN_BOOTSTRAP_PASSWORD || '',
+        devPin: import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD || '',
         warehousePass: 'warehouse123',
         driverPass: 'driver123',
         b2bPass: 'b2b123',
@@ -746,8 +746,8 @@ const SecuritySection: React.FC<{ addLog?: (msg: string, type: 'info'|'err'|'war
       };
     } catch {
       return {
-        adminPass: 'Ali773597404***%',
-        devPin: '733691903***%$',
+        adminPass: import.meta.env.VITE_ADMIN_BOOTSTRAP_PASSWORD || '',
+        devPin: import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD || '',
         warehousePass: 'warehouse123',
         driverPass: 'driver123',
         b2bPass: 'b2b123',
@@ -812,8 +812,8 @@ const SecuritySection: React.FC<{ addLog?: (msg: string, type: 'info'|'err'|'war
 
   const handleResetDefaultPasses = () => {
     const defaults = {
-      adminPass: '321666',
-      devPin: '321666',
+      adminPass: import.meta.env.VITE_ADMIN_BOOTSTRAP_PASSWORD || '',
+      devPin: import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD || '',
       warehousePass: 'warehouse123',
       driverPass: 'driver123',
       b2bPass: 'b2b123',
@@ -916,8 +916,8 @@ const SecuritySection: React.FC<{ addLog?: (msg: string, type: 'info'|'err'|'war
   };
 
   const PORTAL_ITEMS = [
-    { key: 'adminPass', labelAr: '👑 كلمة مرور لوحة التحكم الرئيسية (المسؤول)', labelEn: 'Admin Master Control Password', defaultVal: '321666' },
-    { key: 'devPin', labelAr: '💻 رمز PIN لنظام المطورين (DevOS)', labelEn: 'Developer OS Master PIN', defaultVal: '321666' },
+    { key: 'adminPass', labelAr: '👑 كلمة مرور لوحة التحكم الرئيسية (المسؤول)', labelEn: 'Admin Master Control Password', defaultVal: '' },
+    { key: 'devPin', labelAr: '💻 رمز PIN لنظام المطورين (DevOS)', labelEn: 'Developer OS Master PIN', defaultVal: '' },
     { key: 'warehousePass', labelAr: '📦 كلمة مرور إدارة المستودعات والمخازن', labelEn: 'Warehouse Operations PIN', defaultVal: 'warehouse123' },
     { key: 'driverPass', labelAr: '🚚 كلمة مرور بوابة السائقين والشحن', labelEn: 'Fleet & Drivers Portal PIN', defaultVal: 'driver123' },
     { key: 'b2bPass', labelAr: '🤝 كلمة مرور بوابة كبار العملاء والشركات B2B', labelEn: 'B2B Corporate Portal Password', defaultVal: 'b2b123' },
@@ -1448,7 +1448,7 @@ const AuthorizationSection: React.FC<{ addLog: (msg: string, type: 'info'|'err'|
                   </button>
                   <button 
                     onClick={async () => {
-                      let customDevPin = '733691903***%$';
+                      let customDevPin = import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD || '';
                       try {
                         const savedPasses = JSON.parse(localStorage.getItem('delta_portal_passwords') || '{}');
                         if (savedPasses.devPin) customDevPin = savedPasses.devPin;
@@ -1458,13 +1458,9 @@ const AuthorizationSection: React.FC<{ addLog: (msg: string, type: 'info'|'err'|
 
                       const trimmedPass = passcode.trim();
                       if (
-                        trimmedPass === '733691903***%$' ||
                         trimmedPass === customDevPin ||
-                        trimmedPass === '733691903' ||
-                        trimmedPass === 'Ali773597404***%' ||
-                        trimmedPass === '321666' ||
-                        trimmedPass.includes('733691903') ||
-                        trimmedPass.includes('773597404')
+                        trimmedPass === import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD ||
+                        trimmedPass === import.meta.env.VITE_ADMIN_BOOTSTRAP_PASSWORD
                       ) {
                         await executeUpdate();
                       } else {
@@ -1597,7 +1593,7 @@ export const DeveloperDashboard: React.FC<{ onBack?: () => void }> = ({ onBack }
   };
 
   const handlePinVerify = async () => {
-    let customDevPin = '733691903***%$';
+    let customDevPin = import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD || '';
     try {
       const savedPasses = JSON.parse(localStorage.getItem('delta_portal_passwords') || '{}');
       if (savedPasses.devPin) customDevPin = savedPasses.devPin;
@@ -1607,13 +1603,9 @@ export const DeveloperDashboard: React.FC<{ onBack?: () => void }> = ({ onBack }
 
     const trimmedPin = pin.trim();
     const isValidPin = 
-      trimmedPin === '733691903***%$' ||
       trimmedPin === customDevPin ||
-      trimmedPin === '733691903' ||
-      trimmedPin === 'Ali773597404***%' ||
-      trimmedPin === '321666' ||
-      trimmedPin.includes('733691903') ||
-      trimmedPin.includes('773597404');
+      trimmedPin === import.meta.env.VITE_DEV_BOOTSTRAP_PASSWORD ||
+      trimmedPin === import.meta.env.VITE_ADMIN_BOOTSTRAP_PASSWORD;
 
     if (isValidPin) {
       setIsBiometricVerified(true);
