@@ -187,6 +187,15 @@ function OrderConfirmationMapModal({ isOpen, onClose, orderId, lang }: MapConfir
   );
 }
 
+const REGION_DELIVERY_FEES: Record<number, number> = {
+  1: 25,
+  2: 30,
+  3: 28,
+  4: 27,
+  5: 32,
+  6: 35,
+};
+
 interface CartPageProps {
   cart: CartItem[];
   removeFromCart: (productId: number) => void;
@@ -202,8 +211,9 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
 
   const REMEMBERED_PHONE_KEY = 'delta-remembered-phone-v27';
 
-  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'phone' | 'otp' | 'address' | 'delivery' | 'payment' | 'success'>('cart');
+  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'phone' | 'otp' | 'region' | 'address' | 'delivery' | 'review' | 'payment' | 'success'>('cart');
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard');
+  const [selectedRegionId, setSelectedRegionId] = useState(1);
   const [showPaymentGateway, setShowPaymentGateway] = useState(false);
 
   const [orderId, setOrderId] = useState('');
@@ -229,9 +239,8 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const SHIPPING_FEE = 25;
   const FREE_SHIPPING_THRESHOLD = 200;
-  const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+  const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : (REGION_DELIVERY_FEES[selectedRegionId] ?? 25);
 
   const discountAmount = appliedCoupon ? (appliedCoupon.discountType === 'percentage' ? (subtotal * appliedCoupon.value / 100) : appliedCoupon.value) : 0;
   const cashbackEarned = subtotal * 0.05; // 5% Cashback
@@ -284,7 +293,7 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
       const { isVerified } = await api.checkPhoneVerification(phone);
       if (isVerified) {
         localStorage.setItem(REMEMBERED_PHONE_KEY, phone);
-        setCheckoutStep('address');
+        setCheckoutStep('region');
         addToast(t('cart.identityVerified'), 'success');
         setIsLoading(false);
         return;
@@ -313,7 +322,7 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
 
       if (verified) {
         localStorage.setItem(REMEMBERED_PHONE_KEY, phone);
-        setCheckoutStep('address');
+        setCheckoutStep('region');
         addToast(t('cart.verifiedSuccess'), 'success');
       } else {
         addToast(t('cart.invalidCode'), 'error');
@@ -324,12 +333,20 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
     }
   };
 
+  const handleRegionSubmit = () => {
+    setCheckoutStep('address');
+  };
+
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setCheckoutStep('delivery');
   };
 
   const handleDeliverySubmit = () => {
+    setCheckoutStep('review');
+  };
+
+  const handleReviewSubmit = () => {
     setCheckoutStep('payment');
   };
 
@@ -337,12 +354,7 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
     setIsLoading(true);
 
     // Simple branch assignment logic
-    let assignedBranchId = BRANCH_LOCATIONS[0].id; // Default to Jeddah
-    if (address.city.includes('الرياض') || address.city.toLowerCase().includes('riyadh')) assignedBranchId = 2;
-    else if (address.city.includes('مكة') || address.city.toLowerCase().includes('makkah')) assignedBranchId = 3;
-    else if (address.city.includes('المدينة') || address.city.toLowerCase().includes('madinah')) assignedBranchId = 4;
-    else if (address.city.includes('الدمام') || address.city.toLowerCase().includes('dammam')) assignedBranchId = 5;
-    else if (address.city.includes('أبها') || address.city.toLowerCase().includes('abha')) assignedBranchId = 6;
+    const assignedBranchId = selectedRegionId;
 
     try {
       setSelectedPaymentMethod(method);
@@ -698,6 +710,44 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
         </div>
       )}
 
+      {checkoutStep === 'region' && (
+        <div className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-24 rounded-2xl sm:rounded-3xl md:rounded-[6rem] shadow-sovereign border-t-[10px] md:border-t-[30px] border-secondary">
+          <div className="text-center mb-8 md:mb-16">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-secondary text-3xl">📍</div>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-primary tracking-tighter">
+              {language === 'ar' ? 'اختر منطقة التوصيل' : 'Choose delivery region'}
+            </h2>
+            <p className="text-sm sm:text-lg md:text-2xl text-gray-400 font-bold mt-3">
+              {language === 'ar' ? 'سيتم تجهيز طلبك من أقرب فرع مع احتساب الرسوم قبل التأكيد.' : 'Your order will be prepared by the nearest branch with transparent delivery fees.'}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-16">
+            {BRANCH_LOCATIONS.map(branch => {
+              const fee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : (REGION_DELIVERY_FEES[branch.id] ?? 25);
+              const selected = selectedRegionId === branch.id;
+              return (
+                <button
+                  key={branch.id}
+                  type="button"
+                  onClick={() => setSelectedRegionId(branch.id)}
+                  className={`text-right p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] border-2 md:border-4 transition-all ${selected ? 'border-secondary bg-secondary/5 shadow-xl' : 'border-gray-100 hover:border-secondary/30'}`}
+                >
+                  <span className="text-3xl block mb-4">🏪</span>
+                  <span className="block text-lg md:text-2xl font-black text-primary">{language === 'ar' ? branch.name_ar : branch.name_en}</span>
+                  <span className="block text-xs md:text-sm text-gray-400 font-bold mt-2">{language === 'ar' ? branch.address_ar : branch.address_en}</span>
+                  <span className="block text-sm md:text-base text-secondary font-black mt-4">
+                    {fee === 0 ? (language === 'ar' ? 'توصيل مجاني' : 'Free delivery') : `${formatCurrency(fee)} ${language === 'ar' ? 'رسوم التوصيل' : 'delivery fee'}`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <button onClick={handleRegionSubmit} className="w-full py-4 sm:py-6 md:py-10 bg-secondary text-white rounded-xl sm:rounded-2xl md:rounded-[3.5rem] font-black text-lg sm:text-2xl md:text-4xl shadow-4xl transition-all border-b-4 md:border-b-[15px] border-orange-800">
+            {language === 'ar' ? 'تأكيد المنطقة والمتابعة للعنوان' : 'Confirm region and continue'}
+          </button>
+        </div>
+      )}
+
       {checkoutStep === 'address' && (
         <div
           className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-24 rounded-2xl sm:rounded-3xl md:rounded-[6rem] shadow-sovereign border-t-[10px] md:border-t-[30px] border-primary"
@@ -767,6 +817,49 @@ export function CartPage({ cart, removeFromCart, updateQuantity, clearCart, setP
           >
             {t('cart.deliveryMode.confirm')}
           </button>
+        </div>
+      )}
+
+      {checkoutStep === 'review' && (
+        <div className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-20 rounded-2xl sm:rounded-3xl md:rounded-[5rem] shadow-sovereign border-t-[10px] md:border-t-[30px] border-primary">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-primary tracking-tighter">
+              {language === 'ar' ? 'مراجعة الطلب قبل الدفع' : 'Review your order before payment'}
+            </h2>
+            <p className="text-sm sm:text-lg text-gray-400 font-bold mt-3">
+              {language === 'ar' ? 'تحقق من المنطقة والعنوان وطريقة التوصيل والإجمالي النهائي.' : 'Confirm the region, address, delivery method, and final total.'}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 mb-8 md:mb-12">
+            <div className="bg-slate-50 rounded-2xl md:rounded-[2rem] p-6 md:p-8 space-y-4">
+              <h3 className="text-xl md:text-2xl font-black text-primary">{language === 'ar' ? 'بيانات التوصيل' : 'Delivery details'}</h3>
+              <p className="font-bold text-slate-700">{language === 'ar' ? 'المنطقة:' : 'Region:'} {language === 'ar' ? BRANCH_LOCATIONS.find(b => b.id === selectedRegionId)?.name_ar : BRANCH_LOCATIONS.find(b => b.id === selectedRegionId)?.name_en}</p>
+              <p className="font-bold text-slate-700">{language === 'ar' ? 'العنوان:' : 'Address:'} {address.city}, {address.district}, {address.street}</p>
+              <p className="font-bold text-slate-700">{language === 'ar' ? 'طريقة التوصيل:' : 'Delivery method:'} {t(`cart.deliveryMode.${deliveryMethod}`)}</p>
+            </div>
+            <div className="bg-primary text-white rounded-2xl md:rounded-[2rem] p-6 md:p-8 space-y-4">
+              <h3 className="text-xl md:text-2xl font-black text-secondary">{language === 'ar' ? 'ملخص المبلغ' : 'Amount summary'}</h3>
+              <div className="flex justify-between font-bold"><span>{language === 'ar' ? 'الإجمالي الفرعي' : 'Subtotal'}</span><span>{formatCurrency(subtotal)}</span></div>
+              <div className="flex justify-between font-bold"><span>{language === 'ar' ? 'التوصيل' : 'Delivery'}</span><span>{shippingFee === 0 ? (language === 'ar' ? 'مجاني' : 'Free') : formatCurrency(shippingFee)}</span></div>
+              {discountAmount > 0 && <div className="flex justify-between font-bold text-emerald-200"><span>{language === 'ar' ? 'الخصم' : 'Discount'}</span><span>-{formatCurrency(discountAmount)}</span></div>}
+              <div className="border-t border-white/20 pt-4 flex justify-between text-xl md:text-2xl font-black"><span>{language === 'ar' ? 'الإجمالي مع الضريبة' : 'Total incl. VAT'}</span><span className="text-secondary">{formatCurrency(totalWithVat)}</span></div>
+            </div>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-2xl md:rounded-[2rem] p-5 md:p-8 mb-8">
+            <h3 className="text-lg md:text-xl font-black text-primary mb-4">{language === 'ar' ? 'المنتجات' : 'Products'}</h3>
+            <div className="space-y-3">
+              {cart.map(item => (
+                <div key={item.id} className="flex justify-between gap-4 text-sm md:text-base font-bold text-slate-700">
+                  <span>{language === 'ar' ? item.name_ar : item.name_en} × {item.quantity}</span>
+                  <span>{formatCurrency(item.price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button type="button" onClick={() => setCheckoutStep('delivery')} className="flex-1 py-4 md:py-6 bg-slate-100 text-slate-600 rounded-2xl font-black text-lg">{language === 'ar' ? 'تعديل التوصيل' : 'Edit delivery'}</button>
+            <button type="button" onClick={handleReviewSubmit} className="flex-[2] py-4 md:py-6 bg-primary text-white rounded-2xl font-black text-lg md:text-2xl shadow-4xl">{language === 'ar' ? 'تأكيد المراجعة والانتقال للدفع' : 'Confirm review and continue to payment'}</button>
+          </div>
         </div>
       )}
 

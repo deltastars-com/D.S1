@@ -3,6 +3,7 @@ import { Product, CategoryConfig, ProductUnit } from '../types';
 import { useI18n, useToast, useFirebase } from './lib/contexts';
 import { PlusIcon, TrashIcon, PencilIcon, SearchIcon, FilterIcon } from './lib/contexts/Icons';
 import { ConfirmationModal } from './ConfirmationModal';
+import api from '../services/api';
 
 export const ProductManagementSection: React.FC = () => {
     const { language } = useI18n();
@@ -14,9 +15,28 @@ export const ProductManagementSection: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [isAdding, setIsAdding] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [newProduct, setNewProduct] = useState<Partial<Product>>({
         name_ar: '', name_en: '', category: 'vegetables', price: 0, image: '', unit_ar: 'ريال للكيلو', unit_en: 'kg', stock_quantity: 1000, min_threshold: 50
     });
+
+    const handleProductImageUpload = async (file: File) => {
+        setIsUploadingImage(true);
+        try {
+            const uploaded = await api.uploadProductImage(file);
+            if (editingProduct) {
+                setEditingProduct({ ...editingProduct, image: uploaded.url });
+            } else {
+                setNewProduct(current => ({ ...current, image: uploaded.url }));
+            }
+            addToast(language === 'ar' ? 'تم رفع صورة المنتج وحفظ رابطها السحابي' : 'Product image uploaded to cloud storage', 'success');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Image upload failed';
+            addToast(language === 'ar' ? `تعذر رفع الصورة: ${message}` : message, 'error');
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
 
     const filteredProducts = products.filter(p => {
         const matchesSearch = ((p.name_ar || '') + (p.name_en || '')).toLowerCase().includes(searchTerm.toLowerCase());
@@ -146,13 +166,41 @@ export const ProductManagementSection: React.FC = () => {
                                     />
                                 </div>
                                 <div className="space-y-2 md:space-y-3">
-                                    <label className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest">رابط الصورة</label>
-                                    <input 
-                                        type="text" required
+                                    <label className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest">
+                                        {language === 'ar' ? 'صورة المنتج (تخزين سحابي)' : 'Product image (cloud storage)'}
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp,image/gif"
+                                        disabled={isUploadingImage}
+                                        onChange={e => {
+                                            const file = e.target.files?.[0];
+                                            if (file) void handleProductImageUpload(file);
+                                            e.currentTarget.value = '';
+                                        }}
+                                        className="w-full p-3 md:p-4 bg-slate-50 border-2 border-dashed border-primary/20 focus:border-primary rounded-xl md:rounded-2xl font-bold outline-none transition-all text-sm md:text-base file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:font-bold file:text-white"
+                                    />
+                                    <p className="text-[10px] text-slate-400 font-bold">
+                                        {isUploadingImage
+                                            ? (language === 'ar' ? 'جاري رفع الصورة إلى التخزين السحابي...' : 'Uploading image to cloud storage...')
+                                            : (language === 'ar' ? 'PNG أو JPG أو WebP، بحد أقصى 5 ميجابايت.' : 'PNG, JPG, or WebP, up to 5 MB.')}
+                                    </p>
+                                    <input
+                                        type="url"
+                                        required
+                                        placeholder={language === 'ar' ? 'أو ألصق رابطاً عاماً للصورة' : 'Or paste a public image URL'}
                                         value={editingProduct ? editingProduct.image : newProduct.image}
                                         onChange={e => editingProduct ? setEditingProduct({...editingProduct, image: e.target.value}) : setNewProduct({...newProduct, image: e.target.value})}
-                                        className="w-full p-4 md:p-5 bg-slate-50 border-2 border-transparent focus:border-primary rounded-xl md:rounded-2xl font-bold outline-none transition-all text-sm md:text-base"
+                                        className="w-full p-3 md:p-4 bg-white border border-gray-200 focus:border-primary rounded-xl md:rounded-2xl font-bold outline-none transition-all text-sm md:text-base"
                                     />
+                                    {(editingProduct?.image || newProduct.image) && (
+                                        <img
+                                            src={editingProduct?.image || newProduct.image}
+                                            alt={language === 'ar' ? 'معاينة صورة المنتج' : 'Product image preview'}
+                                            className="h-24 w-24 rounded-xl object-cover border border-gray-200"
+                                            onError={event => { event.currentTarget.style.display = 'none'; }}
+                                        />
+                                    )}
                                 </div>
                                 <div className="space-y-2 md:space-y-3">
                                     <label className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest">الكمية المتوفرة</label>

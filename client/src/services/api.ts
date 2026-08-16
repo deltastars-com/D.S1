@@ -37,6 +37,34 @@ export const api = {
     return result;
   },
 
+  // Product media
+  async uploadProductImage(file: File) {
+    if (!isSupabaseConfigured) {
+      throw new Error('Cloud storage is not configured');
+    }
+    if (!(file instanceof File) || !file.type.startsWith('image/')) {
+      throw new Error('Only image files are allowed');
+    }
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size <= 0 || file.size > maxBytes) {
+      throw new Error('Image must be between 1 byte and 5 MB');
+    }
+
+    const bucket = import.meta.env.VITE_SUPABASE_PRODUCT_IMAGES_BUCKET || 'product-images';
+    const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'product-image';
+    const objectPath = `products/${Date.now()}-${safeName}`;
+    const { error } = await supabase.storage.from(bucket).upload(objectPath, file, {
+      cacheControl: '31536000',
+      contentType: file.type,
+      upsert: false,
+    });
+    if (error) throw new Error(`Product image upload failed: ${error.message}`);
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+    if (!data.publicUrl) throw new Error('Product image URL was not returned');
+    return { path: objectPath, url: data.publicUrl };
+  },
+
   // Orders
   async createOrder(order: any) {
     try {
@@ -171,22 +199,40 @@ export const api = {
   },
 
   async loginToAdminDashboard(username: string, password: string) {
+    const normalizedUsername = username.trim().toLowerCase();
+    const normalizedPassword = password.trim();
+    if (!normalizedUsername || !normalizedPassword) {
+      throw new Error('Invalid Admin credentials');
+    }
     try {
-      const { data, error } = await supabase.from('users').select('*').eq('email', username).eq('role', 'admin').single();
-      if (!error && data) return { user: data };
-    } catch {}
-    if (username.includes('admin') || username.includes('delta')) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedUsername,
+        password: normalizedPassword,
+      });
+      if (error || !data.user) throw error || new Error('Invalid Admin credentials');
+
+      const metadata = data.user.user_metadata || {};
+      const role = metadata.role || metadata.user_role;
+      if (role !== 'admin' && role !== 'developer') {
+        await supabase.auth.signOut();
+        throw new Error('Unauthorized dashboard account');
+      }
+
       return {
         user: {
-          id: 'admin-1',
-          name: 'المشرف العام - نجوم دلتا',
-          email: username,
-          role: 'admin',
-          permissions: ['all']
-        }
+          id: data.user.id,
+          uid: data.user.id,
+          email: data.user.email || normalizedUsername,
+          name: metadata.full_name || metadata.name || normalizedUsername,
+          role,
+          type: role,
+          permissions: metadata.permissions || (role === 'admin' ? ['all'] : ['root_access']),
+          force_password_change: Boolean(metadata.force_password_change),
+        },
       };
+    } catch {
+      throw new Error('Invalid Admin credentials');
     }
-    throw new Error('Invalid Admin credentials');
   },
 
   async requestPasswordReset(email: string) {
@@ -402,7 +448,8 @@ export const api = {
       const res = await authService.verifyOTP(phone, code);
       return { verified: !!res?.verified };
     } catch {
-      return { verified: code === '123456' || code === '112233' || true };
+      // OTP failure must fail closed. Do not accept hard-coded or arbitrary codes.
+      return { verified: false };
     }
   },
 

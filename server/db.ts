@@ -69,6 +69,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
     }
+    if (user.verified !== undefined) {
+      values.verified = user.verified;
+      updateSet.verified = user.verified;
+    }
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
@@ -118,6 +122,26 @@ export async function getUserByPhone(phone: string) {
     .limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function upsertVerifiedCustomer(phone: string) {
+  const normalizedPhone = phone.trim();
+  if (!normalizedPhone) throw new Error("Phone is required");
+
+  const openId = `phone:${normalizedPhone}`;
+  await upsertUser({
+    openId,
+    phone: normalizedPhone,
+    name: "عميل نجوم دلتا",
+    loginMethod: "authentica_otp",
+    role: "user",
+    verified: true,
+    lastSignedIn: new Date(),
+  });
+
+  const user = await getUserByPhone(normalizedPhone);
+  if (!user) throw new Error("Verified user was not persisted");
+  return user;
 }
 
 // ============ PRODUCT OPERATIONS ============
