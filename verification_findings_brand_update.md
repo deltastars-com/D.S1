@@ -23,3 +23,9 @@
 
 ## الأسرار والاختبارات النهائية
 تم ضبط `VITE_ADMIN_BOOTSTRAP_PASSWORD` و`VITE_DEV_BOOTSTRAP_PASSWORD` عبر بيئة المشروع دون تخزين القيم في المصدر. نجح اختبار نقطة HTTP الخفيفة محلياً باستخدام القيم الفعلية، ونجحت Vitest (4 اختبارات) وTypeScript. تعذر على رمز GitHub إضافة أسرار Actions بسبب HTTP 403، لذلك يتخطى اختبار الأسرار نفسه فقط عندما لا تكون أسرار GitHub موجودة؛ أما النشر المدَار فيستخدم أسرار المشروع. بعد إصلاح ذلك نجح CI على commit `3bb04b9` ونجح Android Workflow على commit نفسه.
+
+## تدقيق إزالة العلامة — 2026-08-16
+
+أزيلت أداة debug collector العامة ومجلد `client/public/__manus__`، وأزيل اعتماد `vite-plugin-manus-runtime` من إعداد Vite وملفات الحزم، كما أزيلت الإشارة من `AiAssistant.tsx` و`README_AR.md`. اجتاز المصدر فحص Vitest وTypeScript وبناء الويب، واجتاز APK v5.3.5 توقيع Android v2 وفحص الحزمة، ولم يحتوي `assets/public/index.html` أو أسماء موارده العامة على Manus.
+
+المزامنة إلى `deltastars-com/D.S1` ما زالت محجوبة من GitHub. التوكن الجديد ينجح في قراءة الحساب والمستودع، لكن GitHub يعيد HTTP 403 لعمليات push وHTTP 404 لعملية Contents API، مع `x-accepted-oauth-scopes: repo` و`x-oauth-scopes` فارغة. يلزم منح التوكن صلاحية Contents: Read and write للمستودع D.S1، أو تفويض SSO للمنظمة إن كان مفعلاً، قبل إمكانية الدفع ورفع Release.
