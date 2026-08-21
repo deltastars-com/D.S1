@@ -1,9 +1,9 @@
 /**
- * Delta Stars Service Worker - Offline Support & Cache Management
+ * Delta Stars Service Worker v4 - Offline Support & Auto-Update
  * Network-first for API calls, Cache-first for static assets.
  */
 
-const CACHE_NAME = 'delta-stars-v3-brand-2026';
+const CACHE_NAME = 'delta-stars-v4-auto-update-2026';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -15,7 +15,7 @@ const STATIC_ASSETS = [
 
 // Install: cache static assets
 self.addEventListener('install', (event) => {
-  console.log('🔧 Service Worker installing...');
+  console.log('🔧 Service Worker v4 installing...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('📦 Caching static assets');
@@ -27,20 +27,27 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches
+// Activate: clean old caches + notify clients of update
 self.addEventListener('activate', (event) => {
-  console.log('✅ Service Worker activated');
+  console.log('✅ Service Worker v4 activated');
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      )
-    )
+    Promise.all([
+      caches.keys().then((cacheNames) =>
+        Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('🗑️ Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        )
+      ),
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+        });
+      }),
+    ])
   );
   self.clients.claim();
 });
@@ -99,7 +106,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Handle messages from client
+// Handle messages from client (auto-update trigger)
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();

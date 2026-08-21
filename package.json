@@ -26,7 +26,7 @@
     "cap:open:ios": "npx cap open ios",
     "cap:build": "npm run build:netlify && npx cap sync",
     "build:netlify": "npx --yes vite build",
-    "build:vercel": "node node_modules/.bin/vite build",
+    "build:vercel": "npx --yes vite build",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit"
   },
