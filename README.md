@@ -7,7 +7,7 @@
 متجر إلكتروني احترافي 
 شريكك المثالي للخضروات والفواكة والتمور عالية الجودة في المملكة العربية السعودية 
   [![Netlify Status](https://api.netlify.com/api/v1/badges/deltastars/deploy-status)](https://deltastars.store)
-  ![Version](https://img.shields.io/badge/version-1.0.0-green)
+  ![Version](https://img.shields.io/badge/version-5.4.1-green)
   ![Node](https://img.shields.io/badge/node-20+-blue)
   ![React](https://img.shields.io/badge/react-18.3-blue)
   ![TypeScript](https://img.shields.io/badge/typescript-5.8-blue)
@@ -160,5 +160,17 @@ npx cap open ios
 
 ---
 
-*© 2025 شركة نجوم دلتا للتجارة
-جميع الحقوق محفوظة*
+---
+
+## 👨‍💻 تطوير وبناء
+
+تم التطوير والتصميم والبناء بواسطة:
+
+**المهندس علي الدحان** — Engineer Ali Al-Dahan
+
+Delta Stars Development Team
+
+---
+
+*© 2026 شركة نجوم دلتا للتجارة — جميع الحقوق محفوظة*
+*تم التطوير بواسطة المهندس علي الدحان*
