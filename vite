@@ -1,0 +1,4 @@
+#!/bin/sh
+# Freebuff hosting wrapper: runs vite via node
+# This file makes 'vite build' work when Freebuff runs sh -c "vite build"
+exec node "$(dirname "$0")/node_modules/vite/bin/vite.js" "$@"
