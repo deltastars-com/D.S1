@@ -1,7 +1,7 @@
 # Delta Stars — Netlify deployment
 # Build: pnpm build:netlify (vite build) → publishes dist/public
 [build]
-  command = "node node_modules/.bin/vite build"
+  command = "export PATH=\"$PWD/node_modules/.bin:$PATH\" && vite build"
   publish = "dist/public"
 
 [build.environment]
