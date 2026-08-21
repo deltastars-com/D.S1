@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node ./node_modules/vite/bin/vite.js build",
+  "buildCommand": "sh ./scripts/build.sh",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install --frozen-lockfile",
   "headers": [
