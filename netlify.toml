@@ -1,7 +1,7 @@
 # Delta Stars — Netlify deployment
 # Build: pnpm build:netlify (vite build) → publishes dist/public
 [build]
-  command = "sh ./scripts/build.sh"
+  command = "npm run build"
   publish = "dist/public"
 
 [build.environment]
