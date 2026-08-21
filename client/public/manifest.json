@@ -1,7 +1,7 @@
 {
-  "name": "متجر نجوم دلتا السيادي",
+  "name": "متجر نجوم دلتا | Delta Stars Store",
   "short_name": "نجوم دلتا",
-  "description": "شريكك المثالي للخضروات والفواكه والتمور عالية الجودة في المملكة العربية السعودية",
+  "description": "شريكك المثالي للخضروات والفواكه الطازجة والتمور عالية الجودة في المملكة العربية السعودية",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#021a0a",
@@ -10,25 +10,48 @@
   "scope": "/",
   "lang": "ar",
   "dir": "rtl",
-  "categories": ["shopping", "food"],
+  "categories": ["shopping", "food", "business"],
+  "id": "/",
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "/official_logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/official_logo.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "المنتجات",
+      "short_name": "منتجات",
+      "url": "/products",
+      "description": "تصفح جميع المنتجات"
+    },
+    {
+      "name": "سلة المشتريات",
+      "short_name": "السلة",
+      "url": "/cart",
+      "description": "عرض سلة المشتريات"
     }
   ]
 }
