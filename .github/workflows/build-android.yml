@@ -172,7 +172,7 @@ jobs:
           if-no-files-found: warn
 
       - name: 📤 GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           files: |
